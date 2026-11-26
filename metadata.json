@@ -1,0 +1,6 @@
+{
+  "name": "ResolveDesk — Support Ticket Management System",
+  "description": "Full-stack support ticket management and helpdesk platform with role-based access control, JWT authentication, PostgreSQL persistence, and event-driven workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: resolvedesk-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SQL_DB_NAME:-resolvedesk}
+      POSTGRES_USER: ${SQL_USER:-resolvedesk_app}
+      POSTGRES_PASSWORD: ${SQL_PASSWORD:-change_me_local_dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - resolvedesk_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SQL_USER:-resolvedesk_app} -d ${SQL_DB_NAME:-resolvedesk}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resolvedesk-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      SQL_HOST: postgres
+      SQL_DB_NAME: ${SQL_DB_NAME:-resolvedesk}
+      SQL_USER: ${SQL_USER:-resolvedesk_app}
+      SQL_PASSWORD: ${SQL_PASSWORD:-change_me_local_dev}
+      JWT_SECRET: ${JWT_SECRET:-replace_with_32_byte_random_secret}
+      ADMIN_SETUP_PASSCODE: ${ADMIN_SETUP_PASSCODE:-}
+
+volumes:
+  resolvedesk_pgdata:

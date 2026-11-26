@@ -1,0 +1,221 @@
+{
+  "info": {
+    "name": "ResolveDesk — Support Ticket Management API",
+    "_postman_id": "a6f01b42-9c83-4c8d-b21e-5a8e27c10001",
+    "description": "Complete REST API collection for ResolveDesk (Auth, Tickets, Admin Triage, Comments, Event Audit Log, Notifications, Dashboard Stats).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api" },
+    { "key": "userToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "ticketId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "1. Health & Auth",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "Check Admin Setup Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/admin-status"
+          }
+        },
+        {
+          "name": "Claim First Admin Account",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/claim-admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Priya Nair\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"AdminPass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register User Account",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alex Rivera\",\n  \"email\": \"alex@example.com\",\n  \"password\": \"UserPass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (JWT)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alex@example.com\",\n  \"password\": \"UserPass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Ticket Management",
+      "item": [
+        {
+          "name": "Create Support Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": "{{baseUrl}}/tickets",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Webhook retries failing with HTTP 504\",\n  \"description\": \"Outbound webhook requests to our billing endpoint have timed out since 09:00 UTC.\",\n  \"category\": \"Technical\",\n  \"priority\": \"HIGH\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Tickets (Filter, Search, Sort, Paginate)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/tickets?status=OPEN&priority=ALL&search=&sortBy=createdAt&sortOrder=desc&page=1&limit=10"
+          }
+        },
+        {
+          "name": "Get Ticket Detail & Comments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/tickets/{{ticketId}}"
+          }
+        },
+        {
+          "name": "Update Ticket Details (Owner or Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": "{{baseUrl}}/tickets/{{ticketId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"priority\": \"URGENT\",\n  \"title\": \"URGENT: Webhook retries failing with HTTP 504\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Admin Triage: Update Status & Priority",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/tickets/{{ticketId}}/admin",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESOLVED\",\n  \"priority\": \"HIGH\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Add Comment to Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/tickets/{{ticketId}}/comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Root cause identified and fix deployed. Please verify webhook delivery.\",\n  \"isInternal\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Ticket",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/tickets/{{ticketId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Dashboard, Events, Notifications & Admin",
+      "item": [
+        {
+          "name": "Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/dashboard/stats"
+          }
+        },
+        {
+          "name": "Event Activity Log",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/activity?eventType=ALL&page=1&limit=20"
+          }
+        },
+        {
+          "name": "Notifications Inbox",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/notifications"
+          }
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/notifications/read-all"
+          }
+        },
+        {
+          "name": "Email Notification Outbox",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/email-outbox"
+          }
+        },
+        {
+          "name": "Admin User Directory",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/users"
+          }
+        }
+      ]
+    }
+  ]
+}
